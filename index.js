@@ -25,7 +25,7 @@ app.get('/users/:user', (req, res) => {
         return;
     }
     
-    UserManager.getUser(req.params.user).then((user) => {
+    UserManager.getUser(req.params.user, {username: 1, id: 1}).then((user) => {
         res.send(user)
     })
 })
