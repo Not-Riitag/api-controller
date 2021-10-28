@@ -27,7 +27,7 @@ app.post('/register', (req, res) => {
     if (!req.body.username || !req.body.password || !req.body.email) return res.status(400).json({error: 'Missing username, password or email'})
 
     UserManager.createUser(req.body).then((user) => { 
-        if (user == null) return res.json({ error: 'User already exists' })
+        if (user == null) return res.status(400).json({ error: 'User already exists' })
         res.json(user)
     })
 })
