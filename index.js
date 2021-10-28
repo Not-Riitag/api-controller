@@ -38,7 +38,7 @@ app.get('/users/:user', async (req, res) => {
         return res.json(user)
     }
     
-    return res.json(await UserManager.getUser({ id: req.params.user }, {username: 1, id: 1})) || res.status(400).json({error: 'Invalid user id'})
+    return res.json(await UserManager.getUser({ id: req.params.user }, {username: 1, id: 1}) || {error: 'Invalid user id'})
 })
 
 app.listen(8091)
