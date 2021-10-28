@@ -41,7 +41,7 @@ app.get('/users/:user', async (req, res) => {
         return res.json(Object.assign(user, { permissions: user.permissions.permissions }))
     }
     
-    const user = await UserManager.getUser({ id: req.params.user }, {username: 1, id: 1})
+    const user = await UserManager.getUser({ id: req.params.user }, {username: 1, id: 1, permissions: 1})
     return user == null ? res.status(404).json({error: 'User not found'}) : res.json(Object.assign(user, { permissions: user.permissions.permissions }))
 })
 
