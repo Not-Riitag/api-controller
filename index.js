@@ -42,7 +42,7 @@ app.get('/users/:user', async (req, res) => {
     }
     
     const user = await UserManager.getUser({ id: req.params.user }, {username: 1, id: 1})
-    return user == null ? res.status(404).json({error: 'User not found'}) : res.json(user)
+    return user == null ? res.status(404).json({error: 'User not found'}) : res.json(Object.assign(user, { permissions: user.permissions.permissions }))
 })
 
 app.listen(8091)
