@@ -36,8 +36,9 @@ app.get('/users/:user', async (req, res) => {
     if (req.params.user == "me") {
         const session = await SessionManager.getSession(req.headers.authorization)
         if (!session) return res.status(401).json({error: 'Unauthorized'})
-        
-        return res.json(await UserManager.getUser({ id: session.user }, { password: 0 }))
+        const user = await UserManager.getUser({ id: session.user }, { password: 0 })
+
+        return res.json(Object.assign(user, { permissions: user.permissions.permissions }))
     }
     
     const user = await UserManager.getUser({ id: req.params.user }, {username: 1, id: 1})
