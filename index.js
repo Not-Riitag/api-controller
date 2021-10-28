@@ -38,7 +38,12 @@ app.get('/users/:user', async (req, res) => {
         return res.json(user)
     }
     
-    return res.json(await UserManager.getUser({ id: req.params.user }, {username: 1, id: 1}) || {error: 'Invalid user id'})
+    const user = await UserManager.getUser({ username: req.params.user }, {username: 1, id: 1})
+
+    if (!user)
+        return res.status(404).json({error: 'User not found'})
+    else
+       return res.json(user)
 })
 
 app.listen(8091)
