@@ -40,7 +40,7 @@ app.get('/users/:user', async (req, res) => {
     
     const user = await UserManager.getUser({ username: req.params.user }, {username: 1, id: 1})
 
-    if (!user)
+    if (user == null)
         return res.status(404).json({error: 'User not found'})
     else
        return res.json(user)
