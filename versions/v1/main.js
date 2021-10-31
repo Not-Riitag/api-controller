@@ -4,6 +4,6 @@ module.exports = new ApiRoute({
     route: '',
     
     get: (req, res) => {
-        res.send({'api_version': '1.0.0'})
+        res.json({'api_version': '1.0.0'})
     }
 })

@@ -15,11 +15,11 @@ module.exports = new ApiRoute({
             case '@me':
                 const session = await SessionManager.ParseAuthorization(req.headers.authorization)
                 if (!session) return res.status(Errors.UnauthorizedError.status).json(Errors.UnauthorizedError)
-                user = await UserManager.getUser({ id: session.user }, { password: 0 })
+                user = await UserManager.get({ id: session.user }, { password: 0 })
                 break
 
             default:
-                if (!user) user = await UserManager.getUser({ id: req.params.user }, {username: 1, id: 1, permissions: 1})
+                if (!user) user = await UserManager.get({ id: req.params.user }, {username: 1, id: 1, permissions: 1})
                 break
         }
 
@@ -31,22 +31,22 @@ module.exports = new ApiRoute({
         const session = await SessionManager.ParseAuthorization(req.headers.authorization)
         if (!session) return res.status(Errors.UnauthorizedError.status).json(Errors.UnauthorizedError)
         
-        const user = await UserManager.getUser({ id: session.user }, { password: 0 })
+        const user = await UserManager.get({ id: session.user }, { password: 0 })
 
         if (req.params.user == '@me') req.params.user = user.id // Replace the paramater with the current user.
 
-        const updateUser = await UserManager.getUser({ id: req.params.user }, { password: 0 })
+        const updateUser = await UserManager.get({ id: req.params.user }, { password: 0 })
 
         // Do not allow the user to edit other users without permission
         if ((!user.permissions.has(EnumPermissions.EDIT_USERS) && updateUser.id != user.id)) return res.status(Errors.ForbiddenError.status).json(Errors.ForbiddenError)
 
         if (req.body.password) {
             req.body.password = PasswordUtils.makePassword(req.body.password, user.username) // Rehash and and apply the password.
-            SessionManager.removeSession(user) // Remove the current session.
+            SessionManager.remove(user) // Remove the current session.
         }
 
         if (req.body.username || req.body.email) // Confirm the new username or email is not already in use.
-            if (await UserManager.getUser({ $or: [{ $text: { $search: req.body.username, $caseSensitive: false } }, { email: req.body.email }] }, { id: 1 })) 
+            if (await UserManager.get({ $or: [{ $text: { $search: req.body.username, $caseSensitive: false } }, { email: req.body.email }] }, { id: 1 })) 
                 return res.status(new ConflictError().status).json({ error: 'Username or email already in use' })
     
         // Verify if the user is allowed to change the data
