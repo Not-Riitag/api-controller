@@ -49,11 +49,11 @@ Object.entries(ApiController.registeredApiVersions).forEach((version) => {
     })
 })
 
-app.post('/login', passport.authenticate('local', { session: false }), (req, res) => {
+app.post('/v1/login', passport.authenticate('local', { session: false }), (req, res) => {
     res.json(req.user)
 })
 
-app.post('/register', (req, res) => {
+app.post('/v1/register', (req, res) => {
     if (!req.body.username || !req.body.password || !req.body.email) return res.status(Errors.BadRequestError.status).json({error: 'Missing username, password or email'})
 
     UserManager.createUser(req.body).then((user) => { 
