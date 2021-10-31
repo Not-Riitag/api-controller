@@ -25,6 +25,11 @@ class ApiRoute {
     put = undefined
 
     /**
+     * The PATCH response route
+     */
+    patch = undefined
+
+    /**
      * 
      * @typedef {Object} ApiRoute
      * @property {String} route The linked route

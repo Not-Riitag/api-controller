@@ -8,7 +8,8 @@ class ApiController {
         this.registeredApiVersions[version] = {
             get: {},
             post: {},
-            put: {}
+            put: {},
+            patch: {}
         }
 
         this.registerApiRoutes(version)
@@ -32,6 +33,7 @@ class ApiController {
         if (api.get) this.registeredApiVersions[version].get[api.route] = api.get
         if (api.post) this.registeredApiVersions[version].post[api.route] = api.post
         if (api.put) this.registeredApiVersions[version].put[api.route] = api.put
+        if (api.patch) this.registeredApiVersions[version].patch[api.route] = api.patch
     }
 }
 

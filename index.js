@@ -3,7 +3,8 @@ const {UserManager, SessionManager} = require('./data-controller/index')
 const app = express()
 const passport = require('passport')
 const localStrategy = require('passport-local').Strategy
-const { UnauthorizedError } = require('rest-api-errors')
+const { UnauthorizedError, ConflictError } = require('rest-api-errors')
+const Errors = require('./API/Errors')
 
 const ApiController = new (require('./API/ApiController'))
 const supportedVersions = {
@@ -36,11 +37,16 @@ Object.entries(ApiController.registeredApiVersions).forEach((version) => {
         app.get(`/${version[0]}/${route[0]}`, route[1])
         console.log(`Registered get: ${version[0]}/${route[0]}`)
     })
-})
 
-app.get('/', (req, res) => {
-    res.type('application/json')
-    res.send({'api_version': '0.0.1'})
+    Object.entries(version[1].post).forEach((route) => {
+        app.post(`/${version[0]}/${route[0]}`, route[1])
+        console.log(`Registered post: ${version[0]}/${route[0]}`)
+    })
+
+    Object.entries(version[1].patch).forEach((route) => {
+        app.patch(`/${version[0]}/${route[0]}`, route[1])
+        console.log(`Registered patch: ${version[0]}/${route[0]}`)
+    })
 })
 
 app.post('/login', passport.authenticate('local', { session: false }), (req, res) => {
@@ -48,10 +54,10 @@ app.post('/login', passport.authenticate('local', { session: false }), (req, res
 })
 
 app.post('/register', (req, res) => {
-    if (!req.body.username || !req.body.password || !req.body.email) return res.status(400).json({error: 'Missing username, password or email'})
+    if (!req.body.username || !req.body.password || !req.body.email) return res.status(Errors.BadRequestError.status).json({error: 'Missing username, password or email'})
 
     UserManager.createUser(req.body).then((user) => { 
-        if (user == null) return res.status(400).json({ error: 'User already exists' })
+        if (user == null) return res.status(new ConflictError().status).json({ error: 'User already exists' })
         res.json(user)
     })
 })
