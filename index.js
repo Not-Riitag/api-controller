@@ -3,6 +3,22 @@ const {UserManager, SessionManager} = require('./data-controller/index')
 const app = express()
 const passport = require('passport')
 const localStrategy = require('passport-local').Strategy
+const { UnauthorizedError, ConflictError } = require('rest-api-errors')
+const Errors = require('./API/Errors')
+
+const ApiController = new (require('./API/ApiController'))
+const supportedVersions = {
+    v1: 'v1'
+}
+
+const currentVersion = supportedVersions.v1
+
+// Rewrite URLS to current API version
+app.use((req, res, next) => {
+    if (req.url[1] != 'v') req.url = `/${currentVersion}${req.url}`
+    next()
+})
+
 app.use(express.json())
 app.use(passport.initialize())
 
@@ -14,35 +30,36 @@ passport.use(new localStrategy((username, password, done) => {
     })
 }))
 
-app.get('/', (req, res) => {
-    res.type('application/json')
-    res.send({'api_version': '0.0.1'})
-})
+ApiController.registerVersion(supportedVersions.v1)
 
-app.post('/login', passport.authenticate('local', { session: false }), (req, res) => {
-    res.json(req.user)
-})
+Object.entries(ApiController.registeredApiVersions).forEach((version) => {
+    Object.entries(version[1].get).forEach((route) => {
+        app.get(`/${version[0]}/${route[0]}`, route[1])
+        console.log(`Registered get: ${version[0]}/${route[0]}`)
+    })
 
-app.post('/register', (req, res) => {
-    if (!req.body.username || !req.body.password || !req.body.email) return res.status(400).json({error: 'Missing username, password or email'})
+    Object.entries(version[1].post).forEach((route) => {
+        app.post(`/${version[0]}/${route[0]}`, route[1])
+        console.log(`Registered post: ${version[0]}/${route[0]}`)
+    })
 
-    UserManager.createUser(req.body).then((user) => { 
-        if (user == null) return res.status(400).json({ error: 'User already exists' })
-        res.json(user)
+    Object.entries(version[1].patch).forEach((route) => {
+        app.patch(`/${version[0]}/${route[0]}`, route[1])
+        console.log(`Registered patch: ${version[0]}/${route[0]}`)
     })
 })
 
-app.get('/users/:user', async (req, res) => {
-    if (req.params.user == "me") {
-        const session = await SessionManager.getSession(req.headers.authorization)
-        if (!session) return res.status(401).json({error: 'Unauthorized'})
-        const user = await UserManager.getUser({ id: session.user }, { password: 0 })
+app.post('/v1/login', passport.authenticate('local', { session: false }), (req, res) => {
+    res.json(req.user)
+})
 
-        return res.json(Object.assign(user, { permissions: user.permissions.permissions }))
-    }
-    
-    const user = await UserManager.getUser({ id: req.params.user }, {username: 1, id: 1, permissions: 1})
-    return user == null ? res.status(404).json({error: 'User not found'}) : res.json(Object.assign(user, { permissions: user.permissions.permissions }))
+app.post('/v1/register', (req, res) => {
+    if (!req.body.username || !req.body.password || !req.body.email) return res.status(Errors.BadRequestError.status).json({error: 'Missing username, password or email'})
+
+    UserManager.createUser(req.body).then((user) => { 
+        if (user == null) return res.status(new ConflictError().status).json({ error: 'User already exists' })
+        res.json(user)
+    })
 })
 
 app.listen(8091)
