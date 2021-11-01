@@ -15,7 +15,7 @@ module.exports = new ApiRoute({
             case '@me':
                 const session = await SessionManager.ParseAuthorization(req.headers.authorization)
                 if (!session) return res.status(Errors.UnauthorizedError.status).json(Errors.UnauthorizedError)
-                user = await UserManager.get({ id: session.user }, { password: 0 })
+                user = await UserManager.get({ id: session.user }, { password: 0, "_id": 0 })
                 break
 
             default:
